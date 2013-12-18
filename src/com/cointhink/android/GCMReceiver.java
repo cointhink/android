@@ -1,10 +1,8 @@
 package com.cointhink.android;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+
+import org.apache.http.Header;
 
 import android.app.Activity;
 import android.app.Notification;
@@ -18,8 +16,10 @@ import android.util.Log;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
-public class GCMReceiver extends BroadcastReceiver {
-    private static final Object PUSH_REGISTRATION_URL = "https://cointhink.com/push";
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+
+public class GCMReceiver extends BroadcastReceiver implements Constants {
     static String TAG = "c2apm";
     private Handler UiHandler;
     
@@ -51,11 +51,9 @@ public class GCMReceiver extends BroadcastReceiver {
            // This should be done in a separate thread.
            // When done, remember that all registration is done. 
             Log.d(TAG, "C2DM reg OK for "+registration);
-            Map postData = new HashMap();
+            RequestParams postData = new RequestParams();
             postData.put("registration_id", registration);
-            Map params = new HashMap();
-            params.put("target", PUSH_REGISTRATION_URL);
-            //new HttpPostTask().execute(params, postData);
+            Net.register(postData, new RegisterHandler());
         }
     }
     
@@ -119,5 +117,16 @@ public class GCMReceiver extends BroadcastReceiver {
         public void setWhen(long when) {
             this.when = when;
         }
+    }
+    
+    public class RegisterHandler extends AsyncHttpResponseHandler {
+        @Override
+        public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+            Log.d(APP_TAG, "Success: "+ new String(responseBody));
+        }        
+        @Override
+        public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+            Log.d(APP_TAG, "Error: "+error.toString());
+        }        
     }
 }
