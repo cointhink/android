@@ -80,7 +80,7 @@ public class GCMReceiver extends BroadcastReceiver {
     
     private void addNotice(Context context, String date, String sender, String message) {
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        Notification notification = new Notification(android.R.drawable.btn_star, null, System
+        Notification notification = new Notification(R.drawable.notification_icon, null, System
                 .currentTimeMillis());
         notification.flags = notification.flags ^ Notification.FLAG_AUTO_CANCEL;
         Log.i(TAG,"notification sender:"+sender+" message:"+message);
