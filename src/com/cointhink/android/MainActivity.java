@@ -6,11 +6,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.Menu;
+import android.widget.ListView;
 
 public class MainActivity extends Activity {
 
     static String google_account_id = "837868261850";
     static Handler UiHandler;
+    public static ListView noticeList;
     private Db db;
 
     @Override
