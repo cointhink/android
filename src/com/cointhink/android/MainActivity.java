@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.Menu;
 import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
 
 public class MainActivity extends Activity {
 
@@ -18,7 +19,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.main);
 
         UiHandler = new Handler();
         googleCloudRegister();
@@ -38,11 +39,18 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         db = new Db(this);
+        SimpleCursorAdapter adapter=new SimpleCursorAdapter(this,
+                R.layout.row, db.notices(),
+                new String[] {Db.DATE_COLUMN, Db.SENDER_COLUMN, Db.MESSAGE_COLUMN},
+                new int[] {R.id.date, R.id.sender, R.id.message});
+        noticeList = (ListView) findViewById(R.id.statuses);
+        noticeList.setAdapter(adapter);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        noticeList = null;
         db.close();
     }
 

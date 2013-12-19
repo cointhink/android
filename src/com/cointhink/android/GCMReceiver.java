@@ -11,7 +11,6 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Handler;
 import android.util.Log;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
@@ -20,8 +19,6 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
 public class GCMReceiver extends BroadcastReceiver implements Constants {
-    static String TAG = "c2apm";
-    private Handler UiHandler;
     
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -38,19 +35,19 @@ public class GCMReceiver extends BroadcastReceiver implements Constants {
         String err = intent.getStringExtra("error");
         if (err != null) {
             // Registration failed, should try again later.
-            Log.d(TAG, "C2DM reg failed: "+err);
+            Log.d(APP_TAG, "C2DM reg failed: "+err);
             if("ACCOUNT_MISSING".equals(err)){
                 Toast.makeText(context, "Sign into google first", 
                            Toast.LENGTH_LONG).show();               
             }
         } else if (intent.getStringExtra("unregistered") != null) {
             // unregistration done, new messages from the authorized sender will be rejected
-            Log.d(TAG, "C2DM unregistered");
+            Log.d(APP_TAG, "C2DM unregistered");
         } else if (registration != null) {
            // Send the registration ID to the 3rd party site that is sending the messages.
            // This should be done in a separate thread.
            // When done, remember that all registration is done. 
-            Log.d(TAG, "C2DM reg OK for "+registration);
+            Log.d(APP_TAG, "C2DM reg OK for "+registration);
             RequestParams postData = new RequestParams();
             postData.put("registration_id", registration);
             Net.register(postData, new RegisterHandler());
@@ -61,18 +58,20 @@ public class GCMReceiver extends BroadcastReceiver implements Constants {
         String message = intent.getExtras().getString("message");
         String sender = intent.getExtras().getString("sender");
         String date = intent.getExtras().getString("date");
-        Log.d(TAG, "C2DM Message: date:"+date+" sender:"+sender+": "+message);
+        String type = intent.getExtras().getString("type");
+        String urgency = intent.getExtras().getString("urgency");
+        Log.d(APP_TAG, "C2DM Message: date:"+date+" sender:"+sender+": "+message);
         Db db = new Db(context);
-        //db.insertStatus(date, sender, message);
+        db.insertNotice(date, sender, message, type, urgency);
         db.close();
         addNotice(context, date, sender, message);
-        if(UiHandler != null) {
+        if(MainActivity.UiHandler != null) {
             UiRunnable uiRun = new UiRunnable();
             uiRun.setMessage(message);
             uiRun.setSender(sender);
             Date when = Util.iso8601ToDate(date);
             uiRun.setWhen(when.getTime());
-            UiHandler.post(uiRun);
+            MainActivity.UiHandler.post(uiRun);
         }
     }
     
@@ -81,7 +80,7 @@ public class GCMReceiver extends BroadcastReceiver implements Constants {
         Notification notification = new Notification(R.drawable.notification_icon, null, System
                 .currentTimeMillis());
         notification.flags = notification.flags ^ Notification.FLAG_AUTO_CANCEL;
-        Log.i(TAG,"notification sender:"+sender+" message:"+message);
+        Log.i(APP_TAG,"notification sender:"+sender+" message:"+message);
         PendingIntent contentIntent = PendingIntent.getActivity(context, 0, 
                                         new Intent(context, MainActivity.class), 0);
         notification.setLatestEventInfo(context, sender, message, contentIntent);
